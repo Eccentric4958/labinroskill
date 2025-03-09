@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Information Dashboard</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .country-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 350px;
+            transition: transform 0.3s ease;
+        }
+        
+        .country-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .country-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .flag {
+            width: 60px;
+            height: 40px;
+            margin-right: 15px;
+            border: 1px solid #ddd;
+        }
+        
+        .city-name {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        
+        .country-code {
+            margin: 0;
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+        
+        .info-section {
+            margin-bottom: 15px;
+        }
+        
+        .info-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #3498db;
+        }
+        
+        .prayer-times {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+        
+        .prayer-time {
+            margin: 2px 0;
+        }
+        
+        .fun-fact {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            font-style: italic;
+            margin-top: 15px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            font-style: italic;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #7f8c8d;
+        }
+        
+        .datetime {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .country-card {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>JAHID</h1>
+    </header>
+    
+    <div class="container" id="countryContainer">
+        <!-- City cards will be populated here -->
+    </div>
+    
+    <footer>
+        "Stay Hungry, Stay Foolish"
+    </footer>
+
+    <script>
+        // City data
+        const cities = [
+            {
+                name: "Dhaka",
+                code: "BD",
+                emergency: "999",
+                language: "Bengali",
+                flagUrl: "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/flags/4x3/bd.svg"
+            },
+            {
+                name: "Auckland",
+                code: "NZ",
+                emergency: "111",
+                language: "English",
+                flagUrl: "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/flags/4x3/nz.svg"
+            },
+            {
+                name: "Manila",
+                code: "PH",
+                emergency: "911",
+                language: "Filipino",
+                flagUrl: "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/flags/4x3/ph.svg"
+            }
+        ];
+
+        // Fun facts by language (with English for New Zealand)
+        const funFacts = {
+            "Bengali": [
+                "বাংলাদেশের সুন্দরবন বিশ্বের সবচেয়ে বড় ম্যানগ্রোভ বন।",
+                "বাংলাদেশে ৭০০টিরও বেশি নদী রয়েছে।",
+                "বাংলাদেশের জাতীয় ফুল শাপলা।"
+            ],
+            "English": [
+                "New Zealand was the first country to give women the right to vote in 1893.",
+                "New Zealand has more sheep than people - about 5 sheep per person.",
+                "The Māori name for New Zealand is Aotearoa, which means 'land of the long white cloud'."
+            ],
+            "Filipino": [
+                "Ang Pilipinas ay binubuo ng mahigit 7,000 na pulo.",
+                "Ang Pilipinas ay may isa sa pinakamahabang mga baybayin sa mundo.",
+                "Ang 'Jeepney' ay naging simbolo ng kulturang Pilipino."
+            ]
+        };
+
+        // Population estimates (2023)
+        const populations = {
+            "Dhaka": 22480000,
+            "Auckland": 1720000,
+            "Manila": 13920000
+        };
+
+        // Function to format population with commas
+        function formatPopulation(population) {
+            return population.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // Function to get current season based on month and hemisphere
+        function getSeason(date, isNorthern) {
+            const month = date.getMonth();
+            
+            if (isNorthern) {
+                if (month >= 2 && month <= 4) return "Spring";
+                if (month >= 5 && month <= 7) return "Summer";
+                if (month >= 8 && month <= 10) return "Fall";
+                return "Winter";
+            } else {
+                if (month >= 2 && month <= 4) return "Fall";
+                if (month >= 5 && month <= 7) return "Winter";
+                if (month >= 8 && month <= 10) return "Spring";
+                return "Summer";
+            }
+        }
+
+        // Function to get a random fun fact
+        function getRandomFunFact(language) {
+            const facts = funFacts[language];
+            return facts[Math.floor(Math.random() * facts.length)];
+        }
+
+        // Function to format time to 12-hour format
+        function formatTime(timeString) {
+            const [hours, minutes] = timeString.split(':');
+            let hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            hour = hour % 12;
+            hour = hour ? hour : 12; // the hour '0' should be '12'
+            return `${hour}:${minutes} ${ampm}`;
+        }
+
+        // Function to update weather data
+        async function fetchWeatherData(city) {
+            try {
+                const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=YOUR_API_KEY`);
+                // In a real environment, you would replace YOUR_API_KEY with an actual API key
+                
+                // Since we can't actually fetch data, let's return mock data
+                const mockData = {
+                    "Dhaka": { temp: 28, sunrise: "06:15", sunset: "18:30" },
+                    "Auckland": { temp: 18, sunrise: "07:10", sunset: "19:45" },
+                    "Manila": { temp: 30, sunrise: "05:55", sunset: "18:15" }
+                };
+                
+                return mockData[city];
+            } catch (error) {
+                console.error("Error fetching weather data:", error);
+                return { temp: "N/A", sunrise: "N/A", sunset: "N/A" };
+            }
+        }
+
+        // Function to fetch prayer times from Aladhan API
+        async function fetchPrayerTimes(city) {
+            try {
+                // In a real environment, you would make an actual API call
+                // For this demo, we'll use mock data
+                const mockPrayerTimes = {
+                    "Dhaka": {
+                        Fajr: "05:10",
+                        Sunrise: "06:15",
+                        Dhuhr: "12:15",
+                        Asr: "15:45",
+                        Maghrib: "18:30",
+                        Isha: "19:45"
+                    },
+                    "Auckland": {
+                        Fajr: "05:35",
+                        Sunrise: "07:10",
+                        Dhuhr: "13:00",
+                        Asr: "16:30",
+                        Maghrib: "19:45",
+                        Isha: "21:15"
+                    },
+                    "Manila": {
+                        Fajr: "04:50",
+                        Sunrise: "05:55",
+                        Dhuhr: "12:05",
+                        Asr: "15:15",
+                        Maghrib: "18:15",
+                        Isha: "19:30"
+                    }
+                };
+                
+                return mockPrayerTimes[city];
+            } catch (error) {
+                console.error("Error fetching prayer times:", error);
+                return {};
+            }
+        }
+
+        // Function to create and update city cards
+        async function createCityCards() {
+            const container = document.getElementById('countryContainer');
+            
+            for (const city of cities) {
+                const card = document.createElement('div');
+                card.className = 'country-card';
+                
+                // Get weather data
+                const weatherData = await fetchWeatherData(city.name);
+                
+                // Get prayer times
+                const prayerTimes = await fetchPrayerTimes(city.name);
+                
+                // Get current date and time for the city
+                // In a real environment, you would calculate this based on timezone
+                const now = new Date();
+                
+                // Determine season (Northern hemisphere: Dhaka, Manila; Southern: Auckland)
+                const isNorthern = city.code !== "NZ";
+                const season = getSeason(now, isNorthern);
+                
+                // Format date and time
+                const options = { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                };
+                const dateTimeStr = now.toLocaleDateString('en-US', options);
+                
+                // Get random fun fact
+                const funFact = getRandomFunFact(city.language);
+                
+                // Create HTML content
+                card.innerHTML = `
+                    <div class="country-header">
+                        <img src="${city.flagUrl}" alt="${city.name} flag" class="flag">
+                        <div>
+                            <h2 class="city-name">${city.name}</h2>
+                            <p class="country-code">Country Code: ${city.code}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <p class="datetime" id="datetime-${city.code}">${dateTimeStr}</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <p class="info-title">Weather Information:</p>
+                        <p>Temperature: ${weatherData.temp}°C</p>
+                        <p>Season: ${season}</p>
+                        <p>Sunrise: ${weatherData.sunrise}</p>
+                        <p>Sunset: ${weatherData.sunset}</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <p class="info-title">Emergency Number: ${city.emergency}</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <p class="info-title">Estimated Population: ${formatPopulation(populations[city.name])}</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <p class="info-title">Prayer Times:</p>
+                        <div class="prayer-times">
+                            <p class="prayer-time">Fajr: ${formatTime(prayerTimes.Fajr)}</p>
+                            <p class="prayer-time">Sunrise: ${formatTime(prayerTimes.Sunrise)}</p>
+                            <p class="prayer-time">Dhuhr: ${formatTime(prayerTimes.Dhuhr)}</p>
+                            <p class="prayer-time">Asr: ${formatTime(prayerTimes.Asr)}</p>
+                            <p class="prayer-time">Maghrib: ${formatTime(prayerTimes.Maghrib)}</p>
+                            <p class="prayer-time">Isha: ${formatTime(prayerTimes.Isha)}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="fun-fact">
+                        <p><strong>Fun Fact of the Day:</strong> ${funFact}</p>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            }
+        }
+
+        // Function to update date and time in real-time
+        function updateDateTime() {
+            const now = new Date();
+            
+            cities.forEach(city => {
+                const dateTimeElement = document.getElementById(`datetime-${city.code}`);
+                if (dateTimeElement) {
+                    const options = { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: true
+                    };
+                    
+                    // In a real environment, you would adjust for timezone
+                    dateTimeElement.textContent = now.toLocaleDateString('en-US', options);
+                }
+            });
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            createCityCards();
+            
+            // Update date and time every second
+            setInterval(updateDateTime, 1000);
+        });
+    </script>
+</body>
+</html>
